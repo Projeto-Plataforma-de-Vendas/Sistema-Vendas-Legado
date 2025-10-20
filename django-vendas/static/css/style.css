@@ -1,0 +1,63 @@
+/* Custom styles for Sistema de Vendas */
+
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+}
+
+.navbar-brand {
+    font-weight: bold;
+}
+
+.card {
+    margin-bottom: 1rem;
+}
+
+.table-actions {
+    white-space: nowrap;
+}
+
+.table-actions .btn {
+    margin-right: 0.25rem;
+}
+
+/* Dashboard cards */
+.bg-primary h2,
+.bg-success h2,
+.bg-info h2,
+.bg-warning h2 {
+    margin: 0;
+    font-size: 2.5rem;
+}
+
+/* Footer */
+.footer {
+    margin-top: auto;
+}
+
+/* Form styles */
+.form-required {
+    color: red;
+}
+
+/* Print styles */
+@media print {
+    .navbar,
+    .footer,
+    .btn,
+    .no-print {
+        display: none !important;
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .table-responsive {
+        font-size: 0.85rem;
+    }
+}

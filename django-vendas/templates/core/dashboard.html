@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Sistema de Vendas{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="mb-4">Dashboard</h1>
+    
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <h5 class="card-title">Clientes</h5>
+                    <h2>{{ total_clientes }}</h2>
+                    <a href="{% url 'customers:list' %}" class="text-white">Ver todos <i class="bi bi-arrow-right"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <h5 class="card-title">Produtos</h5>
+                    <h2>{{ total_produtos }}</h2>
+                    <a href="{% url 'inventory:list' %}" class="text-white">Ver todos <i class="bi bi-arrow-right"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-info">
+                <div class="card-body">
+                    <h5 class="card-title">Vendas (Mês)</h5>
+                    <h2>{{ vendas_mes }}</h2>
+                    <a href="{% url 'sales:list' %}" class="text-white">Ver histórico <i class="bi bi-arrow-right"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning">
+                <div class="card-body">
+                    <h5 class="card-title">Faturamento (Mês)</h5>
+                    <h2>R$ {{ vendas_mes_valor|floatformat:2 }}</h2>
+                    <a href="{% url 'sales:total' %}" class="text-white">Ver detalhes <i class="bi bi-arrow-right"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Sales and Low Stock -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="bi bi-cart"></i> Vendas Recentes</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Cliente</th>
+                                <th>Data</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for venda in vendas_recentes %}
+                            <tr>
+                                <td>{{ venda.id }}</td>
+                                <td>{{ venda.cliente.nome }}</td>
+                                <td>{{ venda.data_venda|date:"d/m/Y" }}</td>
+                                <td>R$ {{ venda.total_venda|floatformat:2 }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center">Nenhuma venda registrada</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="bi bi-exclamation-triangle"></i> Produtos com Estoque Baixo</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Produto</th>
+                                <th>Estoque</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for produto in produtos_estoque_baixo %}
+                            <tr class="{% if produto.qtd_estoque <= 5 %}table-danger{% else %}table-warning{% endif %}">
+                                <td>{{ produto.descricao }}</td>
+                                <td>{{ produto.qtd_estoque }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="2" class="text-center">Todos os produtos com estoque adequado</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <a href="{% url 'inventory:estoque' %}" class="btn btn-sm btn-primary">Ver estoque completo</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

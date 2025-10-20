@@ -17,8 +17,8 @@ public class ConnectionFactory {
     
     private final String ip = "127.0.0.1";
     private final String port = "3306";
-    private final String user = "usuario";
-    private final String pass = "123";
+    private final String user = "development";
+    private final String pass = "develop";
     private final String bd = "BDVENDAS";
 
     public Connection getConnection() {

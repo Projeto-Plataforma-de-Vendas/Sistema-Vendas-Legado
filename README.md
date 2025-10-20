@@ -85,7 +85,7 @@ O sistema utiliza as seguintes tabelas principais:
 ### Configuração do Banco de Dados
 
 1. Execute o script SQL localizado em `Script BD Vendas/Script Banco BDVendas.sql`
-2. Certifique-se de que o MySQL está rodando na porta 3306
+2. Certifique-se de que o MySQL está rodando na porta 3306 (baixar em https://dev.mysql.com/downloads/mysql/)
 3. Verifique as credenciais no arquivo `ConnectionFactory.java`:
    ```java
    private final String user = "usuario";

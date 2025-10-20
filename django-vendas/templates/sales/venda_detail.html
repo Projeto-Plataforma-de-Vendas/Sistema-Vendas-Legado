@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block title %}Detalhes da Venda #{{ venda.id }} - Sistema de Vendas{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h3><i class="bi bi-receipt"></i> Detalhes da Venda #{{ venda.id }}</h3>
+        </div>
+        <div class="card-body">
+            <!-- Sale Information -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h5>Informações da Venda</h5>
+                    <table class="table">
+                        <tr>
+                            <th>Cliente:</th>
+                            <td>{{ venda.cliente.nome }}</td>
+                        </tr>
+                        <tr>
+                            <th>CPF:</th>
+                            <td>{{ venda.cliente.cpf }}</td>
+                        </tr>
+                        <tr>
+                            <th>Data da Venda:</th>
+                            <td>{{ venda.data_venda|date:"d/m/Y" }}</td>
+                        </tr>
+                        {% if venda.observacoes %}
+                        <tr>
+                            <th>Observações:</th>
+                            <td>{{ venda.observacoes }}</td>
+                        </tr>
+                        {% endif %}
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <h5>Resumo</h5>
+                    <div class="alert alert-success">
+                        <h4>Total da Venda</h4>
+                        <h2>R$ {{ venda.total_venda|floatformat:2 }}</h2>
+                    </div>
+                </div>
+            </div>
+            
+            <hr>
+            
+            <!-- Items Table -->
+            <h5>Itens da Venda</h5>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Produto</th>
+                            <th>Quantidade</th>
+                            <th>Preço Unitário</th>
+                            <th>Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in itens %}
+                        <tr>
+                            <td>{{ item.produto.descricao }}</td>
+                            <td>{{ item.qtd }}</td>
+                            <td>R$ {{ item.produto.preco|floatformat:2 }}</td>
+                            <td><strong>R$ {{ item.subtotal|floatformat:2 }}</strong></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr class="table-success">
+                            <th colspan="3" class="text-end">TOTAL:</th>
+                            <th>R$ {{ venda.total_venda|floatformat:2 }}</th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            
+            <hr>
+            
+            <!-- Action Buttons -->
+            <div class="d-flex gap-2">
+                <a href="{% url 'sales:list' %}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Voltar
+                </a>
+                <a href="{% url 'sales:delete' venda.pk %}" class="btn btn-danger">
+                    <i class="bi bi-trash"></i> Excluir Venda
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

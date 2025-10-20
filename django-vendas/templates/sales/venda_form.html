@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - Sistema de Vendas{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+            <h3><i class="bi bi-cart-plus"></i> {{ title }}</h3>
+        </div>
+        <div class="card-body">
+            <form method="post" id="vendaForm">
+                {% csrf_token %}
+                
+                <!-- Sale Information -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label for="{{ form.cliente.id_for_label }}" class="form-label">Cliente *</label>
+                        {{ form.cliente }}
+                        {% if form.cliente.errors %}
+                            <div class="text-danger">{{ form.cliente.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="{{ form.data_venda.id_for_label }}" class="form-label">Data da Venda *</label>
+                        {{ form.data_venda }}
+                        {% if form.data_venda.errors %}
+                            <div class="text-danger">{{ form.data_venda.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <label for="{{ form.observacoes.id_for_label }}" class="form-label">Observações</label>
+                        {{ form.observacoes }}
+                        {% if form.observacoes.errors %}
+                            <div class="text-danger">{{ form.observacoes.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <!-- Items Section -->
+                <h4 class="mb-3"><i class="bi bi-list-ul"></i> Itens da Venda</h4>
+                
+                {{ formset.management_form }}
+                
+                <div id="items-container">
+                    {% for item_form in formset %}
+                    <div class="item-row card mb-3 p-3">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label class="form-label">Produto *</label>
+                                {{ item_form.produto }}
+                                {% if item_form.produto.errors %}
+                                    <div class="text-danger">{{ item_form.produto.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Quantidade *</label>
+                                {{ item_form.qtd }}
+                                {% if item_form.qtd.errors %}
+                                    <div class="text-danger">{{ item_form.qtd.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                {% if not forloop.first %}
+                                <button type="button" class="btn btn-danger remove-item w-100">
+                                    <i class="bi bi-trash"></i> Remover
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {{ item_form.id }}
+                        {{ item_form.DELETE }}
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <button type="button" id="add-item" class="btn btn-secondary mb-4">
+                    <i class="bi bi-plus-circle"></i> Adicionar Item
+                </button>
+                
+                <hr>
+                
+                <!-- Submit Buttons -->
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i> Finalizar Venda
+                    </button>
+                    <a href="{% url 'sales:list' %}" class="btn btn-secondary">
+                        <i class="bi bi-x-circle"></i> Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Handle remove item button
+    $(document).on('click', '.remove-item', function() {
+        var itemRow = $(this).closest('.item-row');
+        itemRow.find('input[type="checkbox"][name$="-DELETE"]').prop('checked', true);
+        itemRow.hide();
+    });
+    
+    // Handle add item button
+    $('#add-item').click(function() {
+        var totalForms = $('#id_itens-TOTAL_FORMS');
+        var formIdx = parseInt(totalForms.val());
+        var newForm = $('.item-row:first').clone();
+        
+        // Update form index
+        newForm.find('input, select').each(function() {
+            var name = $(this).attr('name');
+            if (name) {
+                $(this).attr('name', name.replace('-0-', '-' + formIdx + '-'));
+                $(this).attr('id', 'id_' + name.replace('-0-', '-' + formIdx + '-'));
+            }
+        });
+        
+        // Clear values
+        newForm.find('input[type="text"], input[type="number"]').val('');
+        newForm.find('select').val('');
+        newForm.find('input[type="checkbox"]').prop('checked', false);
+        
+        // Add remove button if not present
+        var removeCol = newForm.find('.col-md-2');
+        if (removeCol.find('.remove-item').length === 0) {
+            removeCol.html('<button type="button" class="btn btn-danger remove-item w-100"><i class="bi bi-trash"></i> Remover</button>');
+        }
+        
+        // Show and append
+        newForm.show();
+        $('#items-container').append(newForm);
+        
+        // Increment total forms
+        totalForms.val(formIdx + 1);
+    });
+});
+</script>
+{% endblock %}

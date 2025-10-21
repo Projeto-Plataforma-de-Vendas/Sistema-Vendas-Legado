@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+
+{% block title %}Controle de Estoque - Sistema de Vendas{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="bi bi-box-seam"></i> Controle de Estoque</h1>
+        <a href="{% url 'inventory:list' %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Voltar para Produtos
+        </a>
+    </div>
+    
+    <!-- Search Form -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-10">
+                    {{ search_form.search }}
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search"></i> Buscar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Stock Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-box"></i> Total de Produtos
+                    </h5>
+                    <h2>{{ produtos.count }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-warning text-dark">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-exclamation-triangle"></i> Estoque Baixo
+                    </h5>
+                    <h2>{{ produtos|length|add:"-10" }}</h2>
+                    <small>Produtos com estoque ≤ 10</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-check-circle"></i> Estoque OK
+                    </h5>
+                    <h2>{{ produtos|length|add:"-10" }}</h2>
+                    <small>Produtos com estoque > 10</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Stock Table -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Produto</th>
+                            <th>Fornecedor</th>
+                            <th>Preço Unitário</th>
+                            <th>Quantidade em Estoque</th>
+                            <th>Valor Total</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for produto in produtos %}
+                        <tr class="{% if produto.estoque_baixo %}table-warning{% endif %}">
+                            <td>{{ produto.descricao }}</td>
+                            <td>{{ produto.fornecedor.nome }}</td>
+                            <td>R$ {{ produto.preco|floatformat:2 }}</td>
+                            <td>
+                                <strong class="{% if produto.estoque_baixo %}text-danger{% else %}text-success{% endif %}">
+                                    {{ produto.qtd_estoque }}
+                                </strong>
+                            </td>
+                            <td>R$ {{ produto.preco|floatformat:2 }}</td>
+                            <td>
+                                {% if produto.estoque_baixo %}
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="bi bi-exclamation-triangle"></i> Baixo
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-success">
+                                        <i class="bi bi-check-circle"></i> Normal
+                                    </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center">Nenhum produto encontrado</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            {% if is_paginated %}
+            <nav>
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">Primeira</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">Anterior</a>
+                    </li>
+                    {% endif %}
+                    
+                    <li class="page-item active">
+                        <span class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+                    </li>
+                    
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">Próxima</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">Última</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

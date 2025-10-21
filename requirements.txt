@@ -1,0 +1,7 @@
+Django
+mysqlclient
+python-decouple
+requests
+Pillow
+django-crispy-forms
+crispy-bootstrap5

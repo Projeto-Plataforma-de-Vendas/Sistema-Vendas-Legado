@@ -58,7 +58,7 @@ All Django application files were moved from `django-vendas/` to the root direct
 The following files were **kept** as they are still relevant:
 
 - `Script BD Vendas/` - MySQL database scripts (useful for database setup)
-- `.venv/` - Python virtual environment
+- `venv/` - Python virtual environment
 - `.github/` - GitHub configuration and Copilot instructions
 - `.git/` - Git repository data
 
@@ -164,7 +164,7 @@ python manage.py runserver
 ### New Workflow (After Refactoring)
 ```powershell
 cd Sistema-Vendas-Legado
-.\.venv\Scripts\Activate.ps1  # Direct activation
+.\venv\Scripts\Activate.ps1  # Direct activation
 python manage.py runserver
 ```
 
@@ -192,7 +192,7 @@ python manage.py runserver
 
 3. **Run migrations**
    ```powershell
-   .\.venv\Scripts\Activate.ps1
+   .\venv\Scripts\Activate.ps1
    python manage.py migrate
    ```
 
@@ -219,7 +219,7 @@ python manage.py runserver
 
 ## Notes
 
-- The `.venv` folder remains at the root and is functional
+- The `venv` folder remains at the root and is functional
 - Git history is preserved
 - The project is on the `login-dev` branch
 - Database scripts are retained in `Script BD Vendas/` for reference

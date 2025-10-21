@@ -43,8 +43,8 @@ cd Sistema-Vendas-Legado
 ### 2. Crie e ative um ambiente virtual
 
 ```bash
-python -m venv .venv
-.venv\Scripts\activate  # Windows
+python -m venv venv
+venv\Scripts\activate  # Windows
 ```
 
 ### 3. Instale as dependências

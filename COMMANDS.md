@@ -7,7 +7,7 @@
 cd Sistema-Vendas-Legado
 
 # Activate virtual environment
-.\.venv\Scripts\Activate.ps1
+venv\Scripts\Activate.ps1
 
 # Run development server
 python manage.py runserver

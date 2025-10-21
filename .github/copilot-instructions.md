@@ -94,7 +94,7 @@ Schema script: `Script BD Vendas/Script Banco BDVendas.sql`
 ### Running the Server
 ```bash
 # Activate virtual environment
-.\.venv\Scripts\Activate.ps1  # Windows
+venv\Scripts\Activate.ps1  # Windows
 
 # Run development server
 python manage.py runserver

@@ -5,7 +5,7 @@
 1. **Virtual Environment Active**
    ```powershell
    cd Sistema-Vendas-Legado
-   .\.venv\Scripts\Activate.ps1
+   .\venv\Scripts\Activate.ps1
    ```
 
 2. **Database Configured**

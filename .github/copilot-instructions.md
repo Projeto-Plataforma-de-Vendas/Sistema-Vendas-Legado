@@ -1,64 +1,87 @@
-# Sistema de Vendas - Legado - AI Coding Instructions
+# Sistema de Vendas - Django - AI Coding Instructions
 
 ## Project Overview
-Desktop sales management system built with **Java Swing**, **MySQL**, and **Apache Ant**. Legacy NetBeans project following a 3-tier architecture (View → DAO → Database) without modern frameworks.
+Web-based sales management system built with **Django 4.2**, **MySQL**, and **Bootstrap 5**. Modern web application following Django's **MVT (Model-View-Template)** architecture pattern, migrated from a legacy Java Swing desktop application.
 
 ## Architecture Pattern
 
-### Three-Layer Structure
+### MVT Structure
 ```
-view/ (Swing JFrames) → dao/ (Data Access Objects) → MySQL Database
-                    ↓
-                  model/ (POJOs + utilities)
+Model (models.py) → View (views.py) → Template (HTML/DTL)
+                ↓
+        MySQL Database (via Django ORM)
 ```
 
-**Critical**: This is **NOT** an MVC pattern. No Controller layer exists. View components directly instantiate and call DAO methods.
+**Key Principles**:
+- Models define database schema using Django ORM (no raw SQL unless necessary)
+- Views handle business logic and HTTP request/response
+- Templates render HTML using Django Template Language (DTL)
+- Forms handle validation and data sanitization
+- URL patterns route requests to appropriate views
 
-### DAO Pattern
-Every DAO class follows this exact structure:
-```java
-public class DaoCliente {
-    private Connection con;
+## Django Apps Structure
+
+The project is organized into the following Django apps:
+
+### Core Apps
+- **config/**: Project-wide settings, URLs, WSGI/ASGI configuration
+- **core/**: Authentication, dashboard, utilities (CEP lookup, formatters)
+- **accounts/**: User management (funcionários/employees)
+- **customers/**: Customer management (clientes)
+- **suppliers/**: Supplier management (fornecedores)
+- **inventory/**: Product and stock management (produtos/estoque)
+- **sales/**: Sales processing and reporting (vendas)
+
+### Model Pattern
+
+- **Models**: Django ORM models mapping to MySQL tables (e.g., `Cliente`, `Produto`, `Venda`)
+- **Views**: Function-based views (FBVs) handling HTTP requests
+- **Forms**: Django ModelForms for validation
+- **Templates**: HTML templates with Django Template Language
+- **URLs**: URL patterns for routing
+
+### Django ORM Pattern
+```python
+# Model definition
+class Cliente(models.Model):
+    nome = models.CharField(max_length=100)
+    cpf = models.CharField(max_length=20, unique=True)
+    # ... other fields
     
-    public DaoCliente() {
-        this.con = new ConnectionFactory().getConnection();
-    }
-    
-    // CRUD methods: cadastrar*, alterar*, excluir*, listar*
-}
+    class Meta:
+        db_table = 'tb_clientes'
 ```
 
-- DAOs instantiate `ConnectionFactory` in constructor (not dependency injection)
-- Use `PreparedStatement` exclusively for SQL
-- Show `JOptionPane` dialogs directly from DAO methods for errors/success
-- Return `List<T>` for queries, `void` for inserts/updates
-- Close statements but **not connections** (connection pooling not implemented)
+### View Pattern
+```python
+# Function-based view
+def cliente_list(request):
+    clientes = Cliente.objects.all()
+    return render(request, 'customers/cliente_list.html', {'clientes': clientes})
 
-### Model Classes
-Pure POJOs with getters/setters only. Example:
-- `Cliente`, `Produto`, `Venda` have primitive fields + related objects
-- `ItemVenda` contains `Venda` and `Produto` objects (composition pattern)
-- No business logic in models
-
-### View Layer (Swing Forms)
-- All forms extend `javax.swing.JFrame`
-- NetBeans Form Editor generates GUI code in `initComponents()` (marked `// <editor-fold>`)
-- **Never manually edit** code between `//GEN-BEGIN` and `//GEN-END` comments
-- Business logic goes in button action handlers (`btnActionPerformed` methods)
-- Forms instantiate DAOs directly: `new DaoCliente().cadastrarCliente(obj)`
-
-## Database Connection
-
-### Single Configuration Point
-`src/jdbc/ConnectionFactory.java` hardcodes connection details:
-```java
-private final String ip = "127.0.0.1";
-private final String user = "usuario";
-private final String pass = "123";
-private final String bd = "BDVENDAS";
+def cliente_create(request):
+    if request.method == 'POST':
+        form = ClienteForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Cliente cadastrado com sucesso!')
+            return redirect('customers:cliente_list')
+    else:
+        form = ClienteForm()
+    return render(request, 'customers/cliente_form.html', {'form': form})
 ```
 
-**To change DB settings**: Edit `ConnectionFactory.java` only. Never pass connection strings elsewhere.
+## Database Configuration
+
+### Environment Variables
+Database settings are configured via `.env` file:
+```
+DB_NAME=BDVENDAS
+DB_USER=usuario
+DB_PASSWORD=123
+DB_HOST=127.0.0.1
+DB_PORT=3306
+```
 
 ### Schema Reference
 Database: `BDVENDAS` (MySQL 5.7+)
@@ -68,78 +91,128 @@ Schema script: `Script BD Vendas/Script Banco BDVendas.sql`
 
 ## Development Workflow
 
-### Building (Apache Ant)
+### Running the Server
 ```bash
-# Clean and rebuild
-ant clean build
+# Activate virtual environment
+.\.venv\Scripts\Activate.ps1  # Windows
 
-# Run JAR
-java -jar "dist/Sistema Vendas (Resolvido).jar"
+# Run development server
+python manage.py runserver
 ```
 
-Build file: `build.xml` (NetBeans-generated, rarely modified)
+### Common Commands
+```bash
+# Migrations
+python manage.py makemigrations
+python manage.py migrate
 
-### Entry Point
-Application starts at `view.FrmLogin` (login screen) → `view.FrmMenu` (main menu)
+# Create superuser
+python manage.py createsuperuser
 
-### Adding New Entities
-1. Create table in MySQL (`tb_*` naming convention)
-2. Create model class (`src/model/*.java`) with getters/setters
-3. Create DAO class (`src/dao/Dao*.java`) following existing pattern
-4. Create Swing form via NetBeans Form Editor (`src/view/Frm*.java`)
-5. Wire form buttons to DAO methods
+# Collect static files
+python manage.py collectstatic
 
-## Special Integrations
+# Run tests
+python manage.py test
+```
+
+### Adding New Features
+1. Create/modify models in `models.py`
+2. Create/update forms in `forms.py`
+3. Create/update views in `views.py`
+4. Create/update templates in `templates/`
+5. Wire URL patterns in `urls.py`
+6. Run migrations if models changed
+
+## Special Features
 
 ### CEP WebService
-`model.WebServiceCep` uses **dom4j XML parser** to fetch addresses from Brazilian postal code API.
-- Dependency: `dom4j-2.0.3.jar`
-- Used in: `FrmCliente`, `FrmFornecedor` for address auto-fill
-- Pattern: `WebServiceCep.searchCep("13345-325")` returns object with parsed address
+`core.utils.buscar_cep()` function fetches addresses from Brazilian postal code API.
+- Used in: Customer and Supplier forms
+- Pattern: `buscar_cep("13345-325")` returns dict with address data
+- Integrated via AJAX in forms
 
-### Date Handling
-- Database stores dates as strings: `"dd/MM/yyyy"` format
-- Java 8+ `LocalDate` used in DAOs for date filtering
-- Convert with: `date_inicio.toString()` for SQL queries
-- Display with: `date_format(v.data_venda,'%d/%m/%Y')` in SQL
+### Authentication
+- Django's built-in authentication system
+- Login required decorator for protected views
+- Custom login/logout views in `core` app
+- User model linked to `Funcionario` model
 
 ## Common Patterns
 
 ### List/Search Pattern
-```java
-// DAO method
-public List<Cliente> listarClientes() {
-    List<Cliente> lista = new ArrayList<>();
-    String sql = "select * from tb_clientes";
-    PreparedStatement stmt = con.prepareStatement(sql);
-    ResultSet rs = stmt.executeQuery();
-    while (rs.next()) {
-        Cliente obj = new Cliente();
-        obj.setId(rs.getInt("id"));
-        // ... set all fields
-        lista.add(obj);
-    }
-    return lista;
-}
+```python
+# View with filtering
+def cliente_list(request):
+    nome = request.GET.get('nome', '')
+    if nome:
+        clientes = Cliente.objects.filter(nome__icontains=nome)
+    else:
+        clientes = Cliente.objects.all()
+    return render(request, 'customers/cliente_list.html', {'clientes': clientes})
 ```
 
 ### Sales Transaction Pattern
-1. Insert into `tb_vendas` (parent)
-2. Get `max(id)` from `tb_vendas` via `DaoVenda.retornaUltimaVenda()`
-3. Insert multiple rows into `tb_itensvendas` (children) using returned ID
-4. Update `tb_produtos` stock quantities
+1. Create `Venda` object (sale header)
+2. Create multiple `ItemVenda` objects (sale items)
+3. Update `Produto` stock quantities
+4. All operations wrapped in Django transaction
 
-See: `DaoVenda.cadastrarVenda()` + `DaoItemVenda.cadastraItem()` + stock update logic
+See: `sales/views.py` → `venda_create` view
 
-## Utilities
+## Template Structure
 
-`model.Utilitarios` provides:
-- `LimpaTela(JPanel)`: Clears all JTextField components in panel
-- `verificaLimpo(JPanel)`: Checks if required fields are filled
+### Base Template
+`templates/base.html` provides:
+- Bootstrap 5 layout
+- Navigation menu
+- Message display
+- Block structure for content
+
+### App Templates
+Each app has its own `templates/<app_name>/` folder:
+- `*_list.html`: List/table views
+- `*_form.html`: Create/edit forms
+- `*_detail.html`: Detail views
+- `*_confirm_delete.html`: Delete confirmations
+
+## Static Files
+
+### Organization
+```
+static/
+├── css/
+│   └── style.css          # Custom styles
+└── js/
+    └── script.js          # Custom JavaScript
+```
+
+### Bootstrap & jQuery
+Loaded via CDN in `base.html`
+
+## Testing
+
+Run tests with:
+```bash
+python manage.py test
+```
+
+Each app can have a `tests.py` file for unit tests.
 
 ## Branch Context
 Current branch: `login-dev` (working on authentication features)
 Default branch: `main`
+
+## Migration from Java Swing
+
+This project was migrated from a Java Swing desktop application. Key differences:
+- Desktop (Swing) → Web (Django)
+- 3-tier (View→DAO→DB) → MVT (Model-View-Template)
+- JDBC + SQL → Django ORM
+- Custom auth → Django auth
+- Manual validation → Django forms
+
+For migration details, see `MIGRATION_COMPLETE.md` and `MIGRATION_NOTES.md`.
 
 ## Constraints
 - **No unit tests** exist in this legacy project

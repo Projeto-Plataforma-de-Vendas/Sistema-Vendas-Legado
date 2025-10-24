@@ -1,124 +1,147 @@
 # Sistema de Vendas - Django
 
-Sistema de gestão de vendas desenvolvido com Django, migrado do sistema legado Java Swing.
+Sistema de gestão de vendas desenvolvido em Django 4.2, migrado do sistema legado Java Swing e integrado a um banco MySQL executado via Docker.
 
 ## Tecnologias
 
 - Python 3.10+
 - Django 4.2
-- MySQL 8.0 (Docker)
+- MySQL 8.0 (container Docker)
 - Bootstrap 5
 - jQuery
 - Docker & Docker Compose
 
-## Arquitetura
+## Requisitos
 
-Aplicação web seguindo o padrão MVT (Model-View-Template) do Django:
+- Python 3.10 ou superior
+- Docker Desktop com Docker Compose
+- pip
+- Git
+- Microsoft C++ Build Tools (compilação do `mysqlclient`)
 
-### Apps Django
+## Guia de Configuração
 
-- **core**: Funcionalidades centrais, autenticação, dashboard
-- **customers**: Gestão de clientes
-- **suppliers**: Gestão de fornecedores
-- **inventory**: Gestão de produtos e estoque
-- **sales**: Gestão de vendas e itens de venda
-- **accounts**: Gestão de funcionários e usuários
+### 1. Clonar o repositório
 
-### Estrutura MVT
-
-```
-Model (models.py) → View (views.py) → Template (templates/)
-                ↓
-            Database (MySQL)
-```
-
-## Instalação
-
-### 1. Clone o repositório
-
-```bash
+```powershell
 git clone <repository-url>
 cd Sistema-Vendas-Legado
 ```
 
-### 2. Crie e ative um ambiente virtual
+### 2. Criar o ambiente virtual
 
-```bash
+```powershell
 python -m venv venv
-venv\Scripts\activate  # Windows
 ```
 
-### 3. Instale as dependências
+### 3. Ativar o ambiente virtual
 
-```bash
+```powershell
+.\venv\Scripts\Activate.ps1
+```
+
+Caso apareça erro de política de execução:
+
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+
+### 4. Instalar as dependências Python
+
+```powershell
 pip install -r requirements.txt
 ```
 
-### 4. Configure o banco de dados
+### 5. Configurar variáveis de ambiente
 
-#### Opção A: Usando Docker (Recomendado)
+Copie o arquivo de exemplo:
 
-Copie o arquivo `.env.example` para `.env`:
-
-```bash
-cp .env.example .env
+```powershell
+Copy-Item .env.example .env
 ```
 
-Inicie o container MySQL:
+Edite o `.env` (utilize as credenciais padrão do container Docker caso não tenha ajustes específicos):
 
-```bash
+```
+DB_NAME=BDVENDAS
+DB_USER=usuario
+DB_PASSWORD=123
+DB_HOST=127.0.0.1
+DB_PORT=3306
+```
+
+### 6. Subir o MySQL com Docker
+
+```powershell
 docker-compose up -d
 ```
 
-O Docker irá:
-- Construir a imagem MySQL com o schema
-- Criar um volume persistente para os dados
-- Inicializar o banco de dados com todas as tabelas
-- Aguarde 30-60 segundos para o banco ficar pronto
+O compose irá construir a imagem, criar o volume persistente e inicializar o banco com o schema legado. Aguarde cerca de 1 minuto até que o serviço esteja pronto:
 
-#### Opção B: MySQL Local
+```powershell
+docker-compose logs -f mysql
+```
 
-Se preferir usar MySQL instalado localmente:
+Pressione `Ctrl+C` após visualizar a mensagem `ready for connections`.
 
-1. Instale MySQL 5.7+ ou 8.0+
-2. Configure as credenciais no arquivo `.env`
-3. Execute o script `Script BD Vendas/Script Banco BDVendas.sql`
+### 7. Aplicar migrações
 
-### 5. Crie as tabelas e Execute as migrações
-
-```bash
+```powershell
 python manage.py migrate
 ```
 
-### 6. Crie um superusuário
+### 8. Criar um superusuário
 
-```bash
+```powershell
 python manage.py createsuperuser
 ```
 
-### 7. Execute o servidor
+### 9. Coletar arquivos estáticos (opcional para desenvolvimento)
 
-```bash
+```powershell
+python manage.py collectstatic --noinput
+```
+
+### 10. Executar o servidor de desenvolvimento
+
+```powershell
 python manage.py runserver
 ```
 
-Acesse http://localhost:8000
+### 11. Acessar a aplicação
+
+- Sistema: http://localhost:8000
+- Admin: http://localhost:8000/admin
+
+## Testes e Fluxo de Desenvolvimento
+
+```powershell
+# Criar novas migrações
+python manage.py makemigrations
+
+# Executar testes automatizados
+python manage.py test
+
+# Shell interativo Django
+python manage.py shell
+
+# Carregar dados de exemplo
+python manage.py loaddata fixtures/sample_data.json
+```
 
 ## Gerenciamento do Docker
 
-### Comandos Básicos
-
-```bash
-# Iniciar banco de dados
+```powershell
+# Iniciar banco
 docker-compose up -d
 
-# Parar banco de dados
+# Parar banco
 docker-compose down
 
-# Ver logs do MySQL
+# Ver logs
 docker-compose logs -f mysql
 
-# Acessar shell do MySQL
+# Abrir shell MySQL
 docker-compose exec mysql mysql -u usuario -p123 BDVENDAS
 
 # Backup do banco
@@ -126,15 +149,40 @@ docker-compose exec mysql mysqldump -u usuario -p123 BDVENDAS > backup.sql
 
 # Restaurar backup
 Get-Content backup.sql | docker-compose exec -T mysql mysql -u usuario -p123 BDVENDAS
+
+# Resetar dados
+docker-compose down -v
+docker-compose up -d
 ```
 
-### Volume de Dados
+O volume nomeado `mysql_data` garante a persistência entre reinicializações. Para um reset completo utilize o bloco "Resetar dados" acima.
 
-O Docker cria um volume persistente chamado `mysql_data` que armazena todos os dados do banco de dados. Isso garante que seus dados não sejam perdidos quando o container é parado ou recriado.
+## Solução de Problemas
 
-Para remover completamente os dados (fresh start):
-```bash
-docker-compose down -v
+- **Erro ao importar `crispy_forms`** → Instale `crispy-bootstrap5` com `pip install crispy-bootstrap5`.
+- **Falha de conexão com o banco** → Confirme se o container está ativo (`docker-compose ps`), valide o `.env` e aguarde a inicialização completa registrada nos logs.
+- **Arquivos estáticos ausentes** → Execute `python manage.py collectstatic --noinput`.
+- **Permissões no Windows** → Rode o PowerShell como administrador ou ajuste a política com `Set-ExecutionPolicy RemoteSigned`.
+
+## Arquitetura
+
+Aplicação web seguindo o padrão MVT (Model-View-Template) do Django.
+
+### Apps Django
+
+- **core**: funcionalidades centrais, autenticação, dashboard
+- **customers**: gestão de clientes
+- **suppliers**: gestão de fornecedores
+- **inventory**: gestão de produtos e estoque
+- **sales**: gestão de vendas e itens
+- **accounts**: gestão de funcionários e usuários
+
+### Fluxo MVT
+
+```
+Model (models.py) → View (views.py) → Template (templates/)
+                ↓
+            Database (MySQL)
 ```
 
 ## Funcionalidades
@@ -155,23 +203,25 @@ docker-compose down -v
 
 ```
 Sistema-Vendas-Legado/
-├── config/              # Configurações do Django
-├── core/                # App central
-├── customers/           # App de clientes
-├── suppliers/           # App de fornecedores
-├── inventory/           # App de produtos/estoque
-├── sales/               # App de vendas
-├── accounts/            # App de funcionários
-├── static/              # Arquivos estáticos (CSS, JS, imagens)
-├── templates/           # Templates globais
-├── Script BD Vendas/    # Scripts do banco de dados MySQL
-└── manage.py
+├── accounts/
+├── config/
+├── core/
+├── customers/
+├── docker/
+│   └── mysql/
+├── inventory/
+├── sales/
+├── suppliers/
+├── static/
+├── templates/
+├── manage.py
+└── README.md
 ```
 
-## Diferenças do Sistema Legado
+## Diferenças em relação ao sistema legado
 
 | Aspecto | Java Swing | Django |
-|---------|-----------|---------|
+|---------|-----------|--------|
 | Interface | Desktop (Swing) | Web (HTML/CSS/JS) |
 | Padrão | 3-tier (View→DAO→DB) | MVT (Model-View-Template) |
 | Persistência | JDBC + SQL direto | Django ORM |
@@ -179,28 +229,6 @@ Sistema-Vendas-Legado/
 | Validação | Manual | Django Forms |
 | Roteamento | N/A | URL patterns |
 
-## Comandos Úteis
-
-```bash
-# Criar migrações
-python manage.py makemigrations
-
-# Aplicar migrações
-python manage.py migrate
-
-# Criar superusuário
-python manage.py createsuperuser
-
-# Coletar arquivos estáticos
-python manage.py collectstatic
-
-# Executar testes
-python manage.py test
-
-# Shell interativo
-python manage.py shell
-```
-
 ## Licença
 
-Projeto educacional - Biopark
+Projeto educacional - Eng. Software - 4° Período - Grupo 2 - Biopark

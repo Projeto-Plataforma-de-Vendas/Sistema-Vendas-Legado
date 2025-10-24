@@ -1,14 +1,13 @@
-CREATE DATABASE BDVENDAS;
+-- MySQL initialization script for Sistema de Vendas
+-- This script runs automatically when the Docker container is first created
 
-CREATE USER 'usuario'@'%' IDENTIFIED BY '123';
-GRANT ALL ON *.* TO 'usuario'@'%' WITH GRANT OPTION;
-
-flush privileges;
+-- Create database if not exists
+CREATE DATABASE IF NOT EXISTS BDVENDAS CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 USE BDVENDAS;
 
 /***** TABELA CLIENTES *****/
-CREATE TABLE tb_clientes (
+CREATE TABLE IF NOT EXISTS tb_clientes (
   id int auto_increment primary key,
   nome varchar(100),
   rg varchar (30),
@@ -23,11 +22,11 @@ CREATE TABLE tb_clientes (
   bairro varchar (100),
   cidade varchar (100),
   estado varchar (2)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*****************/
 
 /***** TABELA FORNECEDORES *****/
-CREATE TABLE tb_fornecedores (
+CREATE TABLE IF NOT EXISTS tb_fornecedores (
   id int auto_increment primary key,
   nome varchar(100),
   cnpj varchar (100),
@@ -41,11 +40,11 @@ CREATE TABLE tb_fornecedores (
   bairro varchar (100),
   cidade varchar (100),
   estado varchar (2)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*****************/
 
 /***** TABELA FUNCIONARIOS *****/
-CREATE TABLE tb_funcionarios (
+CREATE TABLE IF NOT EXISTS tb_funcionarios (
   id int auto_increment primary key,
   nome varchar(100),
   rg varchar (30),
@@ -63,12 +62,11 @@ CREATE TABLE tb_funcionarios (
   bairro varchar (100),
   cidade varchar (100),
   estado varchar (2)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*****************/
 
-
 /***** TABELA PRODUTOS *****/
-CREATE TABLE tb_produtos (
+CREATE TABLE IF NOT EXISTS tb_produtos (
   id int auto_increment primary key,
   descricao varchar(100),
   preco decimal (10,2),
@@ -76,11 +74,11 @@ CREATE TABLE tb_produtos (
   for_id int,
 
   FOREIGN KEY (for_id) REFERENCES tb_fornecedores(id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*****************/
 
 /***** TABELA VENDAS *****/
-CREATE TABLE tb_vendas (
+CREATE TABLE IF NOT EXISTS tb_vendas (
   id int auto_increment primary key,
   cliente_id int,
   data_venda datetime,
@@ -88,11 +86,11 @@ CREATE TABLE tb_vendas (
   observacoes text,
 
   FOREIGN KEY (cliente_id) REFERENCES tb_clientes(id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*****************/
 
 /***** TABELA ITENS_VENDAS *****/
-CREATE TABLE tb_itensvendas (
+CREATE TABLE IF NOT EXISTS tb_itensvendas (
   id int auto_increment primary key,
   venda_id int,
   produto_id int,
@@ -101,7 +99,5 @@ CREATE TABLE tb_itensvendas (
 
   FOREIGN KEY (venda_id) REFERENCES tb_vendas(id),
   FOREIGN KEY (produto_id) REFERENCES tb_produtos(id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*****************/
-
-select * from tb_clientes where nome like 'a%';

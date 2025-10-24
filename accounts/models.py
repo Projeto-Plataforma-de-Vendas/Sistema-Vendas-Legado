@@ -19,7 +19,7 @@ class Funcionario(models.Model):
     rg = models.CharField('RG', max_length=30, blank=True)
     cpf = models.CharField('CPF', max_length=20, unique=True)
     email = models.EmailField('E-mail', max_length=200)
-    senha = models.CharField('Senha', max_length=10)  # Legacy field, use User.password instead
+    # using Django's User.password for authentication
     cargo = models.CharField('Cargo', max_length=100)
     nivel_acesso = models.CharField('Nível de Acesso', max_length=50)
     telefone = models.CharField('Telefone', max_length=30)

@@ -1,6 +1,40 @@
 # Django Commands Quick Reference
 
-## 🚀 Getting Started
+## � Docker Commands
+
+```powershell
+# Start MySQL database container
+docker-compose up -d
+
+# Stop MySQL container
+docker-compose down
+
+# View MySQL logs
+docker-compose logs -f mysql
+
+# Check container status
+docker-compose ps
+
+# Restart MySQL container
+docker-compose restart mysql
+
+# Rebuild MySQL image
+docker-compose build mysql
+
+# Remove all containers and volumes (fresh start)
+docker-compose down -v
+
+# Access MySQL shell inside container
+docker-compose exec mysql mysql -u usuario -p123 BDVENDAS
+
+# Backup database
+docker-compose exec mysql mysqldump -u usuario -p123 BDVENDAS > backup_$(Get-Date -Format 'yyyyMMdd_HHmmss').sql
+
+# Restore database from backup
+Get-Content backup.sql | docker-compose exec -T mysql mysql -u usuario -p123 BDVENDAS
+```
+
+## � Python Commands
 
 ```powershell
 # Navigate to project (if not already there)

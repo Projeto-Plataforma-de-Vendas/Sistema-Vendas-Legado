@@ -14,7 +14,8 @@ class Produto(models.Model):
         Fornecedor,
         on_delete=models.PROTECT,
         verbose_name='Fornecedor',
-        related_name='produtos'
+        related_name='produtos',
+        db_column='for_id'  # Match legacy database column name
     )
     
     class Meta:

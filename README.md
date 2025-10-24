@@ -6,9 +6,10 @@ Sistema de gestão de vendas desenvolvido com Django, migrado do sistema legado 
 
 - Python 3.10+
 - Django 4.2
-- MySQL 5.7+
+- MySQL 8.0 (Docker)
 - Bootstrap 5
 - jQuery
+- Docker & Docker Compose
 
 ## Arquitetura
 
@@ -55,15 +56,35 @@ pip install -r requirements.txt
 
 ### 4. Configure o banco de dados
 
-Copie o arquivo `.env.example` para `.env` e configure suas credenciais:
+#### Opção A: Usando Docker (Recomendado)
+
+Copie o arquivo `.env.example` para `.env`:
 
 ```bash
 cp .env.example .env
 ```
 
-Edite o arquivo `.env` com suas configurações de banco de dados.
+Inicie o container MySQL:
 
-### 5. Execute as migrações
+```bash
+docker-compose up -d
+```
+
+O Docker irá:
+- Construir a imagem MySQL com o schema
+- Criar um volume persistente para os dados
+- Inicializar o banco de dados com todas as tabelas
+- Aguarde 30-60 segundos para o banco ficar pronto
+
+#### Opção B: MySQL Local
+
+Se preferir usar MySQL instalado localmente:
+
+1. Instale MySQL 5.7+ ou 8.0+
+2. Configure as credenciais no arquivo `.env`
+3. Execute o script `Script BD Vendas/Script Banco BDVendas.sql`
+
+### 5. Crie as tabelas e Execute as migrações
 
 ```bash
 python manage.py migrate
@@ -82,6 +103,39 @@ python manage.py runserver
 ```
 
 Acesse http://localhost:8000
+
+## Gerenciamento do Docker
+
+### Comandos Básicos
+
+```bash
+# Iniciar banco de dados
+docker-compose up -d
+
+# Parar banco de dados
+docker-compose down
+
+# Ver logs do MySQL
+docker-compose logs -f mysql
+
+# Acessar shell do MySQL
+docker-compose exec mysql mysql -u usuario -p123 BDVENDAS
+
+# Backup do banco
+docker-compose exec mysql mysqldump -u usuario -p123 BDVENDAS > backup.sql
+
+# Restaurar backup
+Get-Content backup.sql | docker-compose exec -T mysql mysql -u usuario -p123 BDVENDAS
+```
+
+### Volume de Dados
+
+O Docker cria um volume persistente chamado `mysql_data` que armazena todos os dados do banco de dados. Isso garante que seus dados não sejam perdidos quando o container é parado ou recriado.
+
+Para remover completamente os dados (fresh start):
+```bash
+docker-compose down -v
+```
 
 ## Funcionalidades
 

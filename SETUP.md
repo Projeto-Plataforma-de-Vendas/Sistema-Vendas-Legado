@@ -3,7 +3,7 @@
 ## Prerequisites
 
 - Python 3.10 or higher
-- MySQL 5.7 or higher
+- Docker and Docker Compose (recommended) OR MySQL 5.7 or higher
 - pip
 - Git
 - Microsoft C++ Build Tools (for mysqlclient)
@@ -55,14 +55,45 @@ DB_HOST=127.0.0.1
 DB_PORT=3306
 ```
 
-### 6. Ensure MySQL database exists
+### 6. Setup MySQL Database
 
-The database `BDVENDAS` should already exist from the Java version.
-If not, create it:
+#### Option A: Using Docker (Recommended)
 
+Start the MySQL container using docker-compose:
+
+```powershell
+docker-compose up -d
+```
+
+This will:
+- Build the MySQL image with the schema
+- Create a persistent volume for data storage
+- Initialize the database with all tables
+- Start the container in the background
+
+Check if the container is running:
+```powershell
+docker-compose ps
+```
+
+Wait for the database to be ready (usually 30-60 seconds on first run):
+```powershell
+docker-compose logs -f mysql
+```
+
+Press `Ctrl+C` when you see "ready for connections".
+
+#### Option B: Using Local MySQL Installation
+
+If you prefer to use a local MySQL installation instead of Docker:
+
+1. Ensure MySQL is running
+2. Create the database:
 ```sql
 CREATE DATABASE BDVENDAS CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
+3. Run the schema script from `Script BD Vendas/Script Banco BDVendas.sql`
+4. Make sure your `.env` file points to `DB_HOST=127.0.0.1`
 
 ### 7. Run migrations
 
@@ -221,6 +252,98 @@ python manage.py loaddata fixtures/sample_data.json
 ✅ CEP lookup integration (WebService)
 ✅ Input validation and masks
 ✅ Responsive design (Bootstrap 5)
+
+## Docker Management
+
+### Starting the Database
+
+```powershell
+docker-compose up -d
+```
+
+### Stopping the Database
+
+```powershell
+docker-compose down
+```
+
+### Viewing Logs
+
+```powershell
+docker-compose logs -f mysql
+```
+
+### Accessing MySQL Shell
+
+```powershell
+docker-compose exec mysql mysql -u usuario -p123 BDVENDAS
+```
+
+### Backup Database
+
+```powershell
+docker-compose exec mysql mysqldump -u usuario -p123 BDVENDAS > backup.sql
+```
+
+### Restore Database
+
+```powershell
+Get-Content backup.sql | docker-compose exec -T mysql mysql -u usuario -p123 BDVENDAS
+```
+
+### Removing All Data (Fresh Start)
+
+```powershell
+docker-compose down -v
+docker-compose up -d
+```
+
+## Troubleshooting
+
+### Docker Issues
+
+**Problem**: Port 3306 already in use
+```powershell
+# Check what's using port 3306
+netstat -ano | findstr :3306
+
+# Stop local MySQL service
+Stop-Service MySQL80  # Adjust service name as needed
+
+# Or change DB_PORT in .env to use a different port (e.g., 3307)
+```
+
+**Problem**: Container fails to start
+```powershell
+# Check container logs
+docker-compose logs mysql
+
+# Rebuild the image
+docker-compose build --no-cache mysql
+docker-compose up -d
+```
+
+**Problem**: Database not initializing
+```powershell
+# Ensure the init.sql is being copied
+docker-compose down -v
+docker-compose build mysql
+docker-compose up -d
+```
+
+### Django Issues
+
+**Problem**: Can't connect to database
+- Ensure Docker container is running: `docker-compose ps`
+- Check `.env` file has correct credentials
+- Wait 30-60 seconds after starting container for first time
+- Verify connection: `docker-compose exec mysql mysqladmin ping -u usuario -p123`
+
+**Problem**: Migration errors
+```powershell
+# Reset migrations (only in development!)
+python manage.py migrate --fake-initial
+```
 
 ## Next Steps
 

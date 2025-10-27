@@ -1,4 +1,6 @@
 from django import forms
+from django.contrib.auth.models import User
+from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import (
     validate_password,
@@ -184,3 +186,59 @@ class FuncionarioUpdateForm(FuncionarioForm):
 
         self.generated_password = generated_password
         return funcionario
+
+class UserRegisterForm(UserCreationForm):
+    full_name = forms.CharField(
+        max_length=100,
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Digite seu nome completo'
+        })
+    )
+    username = forms.CharField(
+        max_length=150,
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Escolha um nome de usuário'
+        })
+    )
+    email = forms.EmailField(
+        required=True,
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Digite seu e-mail'
+        })
+    )
+    password1 = forms.CharField(
+        label='Senha',
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Digite sua senha'
+        }),
+        help_text=password_validators_help_text_html(),
+    )
+    password2 = forms.CharField(
+        label='Confirmar Senha',
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Confirme sua senha'
+        })
+    )
+
+    class Meta:
+        model = User
+        fields = ['full_name', 'username', 'email', 'password1', 'password2']
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.email = self.cleaned_data['email']
+        user.first_name = self.cleaned_data['full_name'].split()[0]
+        user.last_name = " ".join(self.cleaned_data['full_name'].split()[1:])
+
+        user.set_password(self.cleaned_data['password1'])
+        
+        if commit:
+            user.save()
+        return user

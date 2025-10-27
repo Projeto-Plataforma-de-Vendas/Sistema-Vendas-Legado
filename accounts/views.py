@@ -4,6 +4,9 @@ from django.contrib import messages
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
 from django.db.models import Q
+from django.shortcuts import render, redirect
+from django.contrib.auth.views import LoginView as DjangoLoginView, LogoutView as DjangoLogoutView
+from .forms import UserRegisterForm
 
 from .models import Funcionario
 from .forms import FuncionarioSearchForm, FuncionarioCreateForm, FuncionarioUpdateForm
@@ -107,3 +110,16 @@ class AccountPasswordChangeDoneView(LoginRequiredMixin, PasswordChangeDoneView):
     """Confirmation page displayed after password change."""
 
     template_name = 'accounts/password_change_done.html'
+
+def register(request):
+    if request.method == 'POST':
+        form = UserRegisterForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Conta criada com sucesso! Você já pode fazer login.')
+            return redirect('core:login')
+        else:
+            print(form.errors)  # <-- aqui
+    else:
+        form = UserRegisterForm()
+    return render(request, 'accounts/register.html', {'form': form})

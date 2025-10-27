@@ -1,10 +1,12 @@
 """
 Django settings for Sistema de Vendas project.
 """
-
+import pymysql
+pymysql.install_as_MySQLdb()
 import os
 from pathlib import Path
 from decouple import config
+
 
 # Build paths inside the project
 BASE_DIR = Path(__file__).resolve().parent.parent

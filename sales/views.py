@@ -71,45 +71,51 @@ class VendaCreateView(LoginRequiredMixin, View):
         formset = ItemVendaFormSet(request.POST)
         
         if form.is_valid() and formset.is_valid():
-            # Save sale
-            venda = form.save(commit=False)
-            venda.total_venda = 0
-            venda.save()
-            
-            # Save items and update stock
-            total = 0
-            for item_form in formset:
-                if item_form.cleaned_data and not item_form.cleaned_data.get('DELETE'):
-                    item = item_form.save(commit=False)
-                    item.venda = venda
-                    
-                    # Calculate subtotal
-                    item.subtotal = item.produto.preco * item.qtd
-                    total += item.subtotal
-                    
-                    # Update stock
-                    produto = item.produto
-                    if not produto.remover_estoque(item.qtd):
-                        messages.error(
-                            request,
-                            f'Estoque insuficiente para {produto.descricao}'
-                        )
-                        transaction.set_rollback(True)
-                        context = {
-                            'form': form,
-                            'formset': formset,
-                            'title': 'Nova Venda',
-                        }
-                        return render(request, self.template_name, context)
-                    
-                    item.save()
-            
-            # Update sale total
-            venda.total_venda = total
-            venda.save()
-            
-            messages.success(request, f'Venda #{venda.id} cadastrada com sucesso!')
-            return redirect('sales:detail', pk=venda.pk)
+            try:
+                # Save sale
+                venda = form.save(commit=False)
+                venda.total_venda = 0
+                venda.save()
+                
+                # Save items and update stock
+                total = 0
+                for item_form in formset:
+                    if item_form.cleaned_data and not item_form.cleaned_data.get('DELETE'):
+                        item = item_form.save(commit=False)
+                        item.venda = venda
+                        
+                        # Calculate subtotal
+                        item.subtotal = item.produto.preco * item.qtd
+                        total += item.subtotal
+                        
+                        # Update stock with proper error handling
+                        try:
+                            item.produto.remover_estoque(
+                                item.qtd,
+                                observacao=f'Venda #{venda.id}'
+                            )
+                        except ValueError as e:
+                            messages.error(request, str(e))
+                            transaction.set_rollback(True)
+                            context = {
+                                'form': form,
+                                'formset': formset,
+                                'title': 'Nova Venda',
+                            }
+                            return render(request, self.template_name, context)
+                        
+                        item.save()
+                
+                # Update sale total
+                venda.total_venda = total
+                venda.save()
+                
+                messages.success(request, f'Venda #{venda.id} cadastrada com sucesso!')
+                return redirect('sales:detail', pk=venda.pk)
+                
+            except Exception as e:
+                messages.error(request, f'Erro ao processar venda: {str(e)}')
+                transaction.set_rollback(True)
         
         context = {
             'form': form,

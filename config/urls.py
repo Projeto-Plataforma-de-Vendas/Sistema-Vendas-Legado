@@ -1,19 +1,22 @@
-"""
-URL Configuration for Sistema de Vendas
-"""
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.generic import RedirectView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('core.urls')),
+
+    # Rota inicial: registro de usuário
+    path('', RedirectView.as_view(pattern_name='accounts:register', permanent=False)),
+
+    # URLs dos apps
+    path('accounts/', include('accounts.urls')),
+    path('core/', include('core.urls')), 
     path('clientes/', include('customers.urls')),
     path('fornecedores/', include('suppliers.urls')),
     path('produtos/', include('inventory.urls')),
     path('vendas/', include('sales.urls')),
-    path('funcionarios/', include('accounts.urls')),
 ]
 
 if settings.DEBUG:

@@ -6,22 +6,50 @@
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1><i class="bi bi-box-seam"></i> Controle de Estoque</h1>
-        <a href="{% url 'inventory:list' %}" class="btn btn-secondary">
-            <i class="bi bi-arrow-left"></i> Voltar para Produtos
-        </a>
+        <div>
+            <a href="{% url 'inventory:ajuste_estoque' %}" class="btn btn-warning me-2">
+                <i class="bi bi-wrench"></i> Ajustar Estoque
+            </a>
+            <a href="{% url 'inventory:movimentacoes' %}" class="btn btn-info me-2">
+                <i class="bi bi-clock-history"></i> Movimentações
+            </a>
+            <a href="{% url 'inventory:list' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Voltar
+            </a>
+        </div>
     </div>
     
     <!-- Search Form -->
     <div class="card mb-3">
         <div class="card-body">
-            <form method="get" class="row g-3">
-                <div class="col-md-10">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-8">
+                    <label for="id_search" class="form-label">Buscar Produto</label>
                     {{ search_form.search }}
                 </div>
                 <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary w-100">
+                    <div class="form-check">
+                        {{ search_form.estoque_baixo }}
+                        <label class="form-check-label" for="id_estoque_baixo">
+                            Apenas estoque baixo
+                        </label>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="form-check">
+                        {{ search_form.sem_estoque }}
+                        <label class="form-check-label" for="id_sem_estoque">
+                            Apenas sem estoque
+                        </label>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">
                         <i class="bi bi-search"></i> Buscar
                     </button>
+                    <a href="{% url 'inventory:estoque' %}" class="btn btn-secondary">
+                        <i class="bi bi-x-circle"></i> Limpar
+                    </a>
                 </div>
             </form>
         </div>
@@ -29,35 +57,43 @@
     
     <!-- Stock Statistics -->
     <div class="row mb-4">
-        <div class="col-md-4">
+        <div class="col-md-3">
             <div class="card bg-primary text-white">
                 <div class="card-body">
                     <h5 class="card-title">
                         <i class="bi bi-box"></i> Total de Produtos
                     </h5>
-                    <h2>{{ produtos.count }}</h2>
+                    <h2>{{ total_produtos }}</h2>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-x-circle"></i> Sem Estoque
+                    </h5>
+                    <h2>{{ produtos_sem_estoque }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
             <div class="card bg-warning text-dark">
                 <div class="card-body">
                     <h5 class="card-title">
                         <i class="bi bi-exclamation-triangle"></i> Estoque Baixo
                     </h5>
-                    <h2>{{ produtos|length|add:"-10" }}</h2>
-                    <small>Produtos com estoque ≤ 10</small>
+                    <h2>{{ produtos_estoque_baixo }}</h2>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-3">
             <div class="card bg-success text-white">
                 <div class="card-body">
                     <h5 class="card-title">
-                        <i class="bi bi-check-circle"></i> Estoque OK
+                        <i class="bi bi-cash-stack"></i> Valor Total
                     </h5>
-                    <h2>{{ produtos|length|add:"-10" }}</h2>
-                    <small>Produtos com estoque > 10</small>
+                    <h2>R$ {{ valor_total_estoque|default:0|floatformat:2 }}</h2>
                 </div>
             </div>
         </div>
@@ -72,26 +108,32 @@
                         <tr>
                             <th>Produto</th>
                             <th>Fornecedor</th>
-                            <th>Preço Unitário</th>
-                            <th>Quantidade em Estoque</th>
+                            <th>Preço Unit.</th>
+                            <th>Qtd. Estoque</th>
+                            <th>Est. Mínimo</th>
                             <th>Valor Total</th>
                             <th>Status</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for produto in produtos %}
-                        <tr class="{% if produto.estoque_baixo %}table-warning{% endif %}">
+                        <tr class="{% if produto.qtd_estoque == 0 %}table-danger{% elif produto.estoque_baixo %}table-warning{% endif %}">
                             <td>{{ produto.descricao }}</td>
                             <td>{{ produto.fornecedor.nome }}</td>
                             <td>R$ {{ produto.preco|floatformat:2 }}</td>
                             <td>
-                                <strong class="{% if produto.estoque_baixo %}text-danger{% else %}text-success{% endif %}">
+                                <strong class="{% if produto.qtd_estoque == 0 %}text-danger{% elif produto.estoque_baixo %}text-warning{% else %}text-success{% endif %}">
                                     {{ produto.qtd_estoque }}
                                 </strong>
                             </td>
-                            <td>R$ {{ produto.preco|floatformat:2 }}</td>
+                            <td>{{ produto.estoque_minimo }}</td>
+                            <td>R$ {{ produto.valor_estoque|floatformat:2 }}</td>
                             <td>
-                                {% if produto.estoque_baixo %}
+                                {% if produto.qtd_estoque == 0 %}
+                                    <span class="badge bg-danger">
+                                        <i class="bi bi-x-circle"></i> Sem Estoque
+                                    </span>
+                                {% elif produto.estoque_baixo %}
                                     <span class="badge bg-warning text-dark">
                                         <i class="bi bi-exclamation-triangle"></i> Baixo
                                     </span>
@@ -104,7 +146,7 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="6" class="text-center">Nenhum produto encontrado</td>
+                            <td colspan="7" class="text-center">Nenhum produto encontrado</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -117,10 +159,10 @@
                 <ul class="pagination justify-content-center">
                     {% if page_obj.has_previous %}
                     <li class="page-item">
-                        <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">Primeira</a>
+                        <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.estoque_baixo %}&estoque_baixo=on{% endif %}{% if request.GET.sem_estoque %}&sem_estoque=on{% endif %}">Primeira</a>
                     </li>
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">Anterior</a>
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.estoque_baixo %}&estoque_baixo=on{% endif %}{% if request.GET.sem_estoque %}&sem_estoque=on{% endif %}">Anterior</a>
                     </li>
                     {% endif %}
                     
@@ -130,10 +172,10 @@
                     
                     {% if page_obj.has_next %}
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">Próxima</a>
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.estoque_baixo %}&estoque_baixo=on{% endif %}{% if request.GET.sem_estoque %}&sem_estoque=on{% endif %}">Próxima</a>
                     </li>
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">Última</a>
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.estoque_baixo %}&estoque_baixo=on{% endif %}{% if request.GET.sem_estoque %}&sem_estoque=on{% endif %}">Última</a>
                     </li>
                     {% endif %}
                 </ul>

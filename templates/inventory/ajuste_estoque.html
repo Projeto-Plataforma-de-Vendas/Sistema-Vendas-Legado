@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}Ajustar Estoque - Sistema de Vendas{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-warning">
+                    <h3><i class="bi bi-wrench"></i> Ajustar Estoque</h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        Use este formulário para corrigir manualmente a quantidade em estoque de um produto.
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form.as_p }}
+                        
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-warning">
+                                <i class="bi bi-save"></i> Ajustar
+                            </button>
+                            <a href="{% url 'inventory:estoque' %}" class="btn btn-secondary">
+                                <i class="bi bi-x-circle"></i> Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
